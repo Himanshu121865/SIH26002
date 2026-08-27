@@ -1,71 +1,104 @@
 # SIH26002 — AI-Based Smart Logistics and Accessibility Intelligence Platform for NER
 
 > **Smart India Hackathon 2026** | PS Org: MDoNER | Theme: Smart Automation | Category: Software
+> **Problem Statement:** AI-Based Smart Logistics and Accessibility Intelligence Platform for North Eastern Region (NER)
 
-An AI-powered logistics intelligence platform for India's North Eastern Region (NER), providing real-time road accessibility monitoring, disruption prediction, and risk-aware route planning across the 8 northeastern states.
+An AI-powered logistics intelligence platform for India's North Eastern Region (NER), providing real-time road accessibility monitoring, disruption prediction, risk-aware route planning, and offline field reporting across all 8 northeastern states.
 
 ---
 
-## Live Demo
+## Quick Start
 
 ```bash
-# Backend
-cd backend && source .venv/bin/activate
-uvicorn main:app --reload --port 8000
+# Clone
+git clone https://github.com/Himanshu121865/SIH26002.git
+cd SIH26002
 
-# Frontend
-cd frontend && npx vite --port 3000
+# One-command start
+make dev
 ```
 
 Open **http://localhost:3000** — Backend API docs at **http://localhost:8000/docs**
+
+### Prerequisites
+- Python 3.12+ (with `uv` package manager)
+- Node.js 18+
+
+### Manual Setup
+
+```bash
+# Backend
+cd backend && uv venv .venv && source .venv/bin/activate
+uv pip install -r requirements.txt
+python3 ../ml/seed_roads.py                          # ~2 min, parses OSM PBF
+python3 -c "import sys; sys.path.insert(0,'../ml'); from seed_real_data import seed_all; seed_all()"
+
+# Frontend
+cd ../frontend && npm install
+```
 
 ---
 
 ## What It Does
 
-| Feature | Description |
-|---|---|
-| **Road Network Map** | 285,654 real road segments from OpenStreetMap covering all 8 NER states |
-| **Live Weather** | Real-time temperature, rainfall, wind from Open-Meteo for any NER location |
-| **Disruption Prediction** | XGBoost + RandomForest ML model predicting landslide/flood risk from weather + terrain |
-| **Vehicle Tracking** | GPS fleet tracking with real-time positions across NER cities |
-| **Siliguri Corridor Monitor** | Dedicated monitoring for the 22km-wide chicken neck corridor |
-| **Alert System** | Active alerts for weather, disruptions, and route hazards |
-| **Field Reports** | Offline-capable incident reporting with photo upload |
-| **Multilingual** | English, Bengali, Hindi, Assamese |
+### Problem We Solve
+
+The North Eastern Region faces major logistics challenges: difficult terrain, extreme weather, limited connectivity, and frequent road disruptions from landslides, floods, and infrastructure gaps. There is no integrated platform that provides real-time logistics visibility, route accessibility, predictive disruption alerts, and optimized transportation planning for the region.
+
+### Our Solution
+
+| Feature | PS Requirement | Implementation |
+|---|---|---|
+| **Road Network Monitoring** | Real-time road/bridge/transport accessibility | 285,654 real OSM road segments across 8 NER states |
+| **Disruption Prediction** | Predict route disruptions (landslides, floods, rain) | XGBoost + RandomForest ML model, 94% accuracy |
+| **Route Optimization** | AI-based alternate route suggestions + travel delays | OSRM integration with Valhalla fallback + risk scoring |
+| **Vehicle Tracking** | GPS tracking for essential commodities | 25 vehicles with real-time positions across NER |
+| **Automated Alerts** | Blocked roads, high-risk corridors, delayed deliveries | Alert system with severity levels (critical/high/moderate/low) |
+| **Field Reporting** | Geo-tagged updates, photos, incident reports | Web form with offline sync via IndexedDB + Service Worker |
+| **District Dashboard** | District-wise connectivity status | Per-district road density, connectivity score, resilience |
+| **Emergency Corridors** | Emergency/disaster-time accessibility routes | 6 critical NER corridors with live status monitoring |
+| **Multilingual Support** | Multilingual notifications | English, Bengali, Hindi, Assamese with instant switching |
+| **Offline Support** | Low-network area data synchronization | PWA with offline field report storage + background sync |
+| **Live Weather** | Weather data integration | Real-time Open-Meteo API for 10 NER cities |
+| **Analytics** | Logistics bottlenecks and supply chain gaps | Disruption breakdown, vulnerability charts, state-level density |
 
 ---
 
-## Real Data Sources
+## Pages
 
-| Source | Data | Access |
-|---|---|---|
-| **OpenStreetMap** | 285K road segments (NER extract from Geofabrik) | Free, local PBF file |
-| **Open-Meteo** | Live weather (temp, rain, wind, humidity) | Free API, no key |
-| **NHAI API Setu** | Highway work zones, accident-prone areas, landslide alerts | Government API |
-| **India Meteorological Dept** | Rainfall data, weather warnings | Public data |
-| **Census 2011** | District populations, road density | Public data |
+| Page | Description |
+|---|---|
+| `/` | **Dashboard** — Stats cards, live map with vehicles + disruptions + heatmap, Siliguri monitor, weather panel, alerts |
+| `/tracking` | **Vehicle Tracking** — Fleet map with markers + popups, vehicle list with driver/cargo info |
+| `/disruptions` | **Disruption Monitor** — Disruption heatmap on map, severity-sorted disruption list |
+| `/districts` | **District Connectivity** — All 8 NER states with district-level connectivity, status badges, filters |
+| `/analytics` | **Analytics** — Vulnerability donut, disruption type pie, severity bars, road density by state |
+| `/emergency` | **Emergency Corridors** — 6 critical NER corridors with status, active critical disruptions |
+| `/reports` | **Field Reports** — Submit geo-tagged reports with offline sync, online/offline indicator |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    React Frontend                        │
-│  MapLibre GL JS · Deck.gl · Recharts · i18next          │
-└──────────────────────┬──────────────────────────────────┘
-                       │ /api/v1/*
-┌──────────────────────┴──────────────────────────────────┐
-│                   FastAPI Backend                        │
-│  Routing · Tracking · Alerts · Reports · Weather        │
-├─────────────────────────────────────────────────────────┤
-│                   SQLite Database                        │
-│  285K roads · Vehicles · Disruptions · Alerts           │
-├─────────────────────────────────────────────────────────┤
-│                   ML Pipeline                            │
-│  XGBoost + RandomForest · Open-Meteo Weather            │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    React Frontend (PWA)                       │
+│  MapLibre GL JS · Deck.gl Heatmap · Recharts · i18next      │
+│  Service Worker · IndexedDB (offline) · Vite · TypeScript    │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ /api/v1/*
+┌──────────────────────────┴──────────────────────────────────┐
+│                    FastAPI Backend (14 endpoints)             │
+│  Routing · Tracking · Alerts · Reports · Weather · Analytics │
+│  Districts · Route Optimization (OSRM/Valhalla fallback)     │
+├──────────────────────────────────────────────────────────────┤
+│                    SQLite Database                            │
+│  285K roads · 25 vehicles · 15 disruptions · 10 alerts      │
+│  8 districts · Siliguri corridor status                      │
+├──────────────────────────────────────────────────────────────┤
+│                    ML Pipeline                                │
+│  XGBoost + RandomForest · Open-Meteo Weather · 94% accuracy  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -74,11 +107,13 @@ Open **http://localhost:3000** — Backend API docs at **http://localhost:8000/d
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18, MapLibre GL JS, Deck.gl, Vite, TypeScript |
+| Frontend | React 18, MapLibre GL JS, Deck.gl, Recharts, Vite, TypeScript |
 | Backend | FastAPI, SQLAlchemy, SQLite, Python 3.12 |
 | ML | XGBoost, scikit-learn, pandas, joblib |
-| Data | OpenStreetMap (osmium), Open-Meteo API |
-| Routing | Valhalla (optional, for production routing) |
+| Routing | OSRM (public API) + Valhalla (optional) |
+| Data | OpenStreetMap (osmium), Open-Meteo API, Census 2011 |
+| Offline | Service Worker, IndexedDB, background sync |
+| i18n | react-i18next (EN/BN/HI/AS) |
 
 ---
 
@@ -88,98 +123,42 @@ Open **http://localhost:3000** — Backend API docs at **http://localhost:8000/d
 |---|---|---|
 | GET | `/health` | Health check |
 | GET | `/api/v1/routing/roads.geojson` | Road network GeoJSON (50K features) |
-| GET | `/api/v1/routing/stats` | Road + vehicle + disruption counts |
+| GET | `/api/v1/routing/stats` | Road + vehicle + disruption + alert counts |
+| POST | `/api/v1/routing/optimize` | Route optimization (OSRM/Valhalla fallback) |
 | GET | `/api/v1/routing/weather?lat=&lon=` | Live weather from Open-Meteo |
-| GET | `/api/v1/routing/predict-disruption?lat=&lon=&slope_deg=` | ML risk prediction |
+| GET | `/api/v1/routing/ner-weather` | Live weather for all 10 NER cities |
+| GET | `/api/v1/routing/predict-disruption` | ML disruption risk prediction |
 | GET | `/api/v1/routing/disruptions` | Active disruptions |
 | GET | `/api/v1/routing/siliguri-status` | Siliguri Corridor status |
+| GET | `/api/v1/routing/districts` | District connectivity data |
+| GET | `/api/v1/routing/analytics` | Aggregated analytics for charts |
 | GET | `/api/v1/tracking/vehicles` | All tracked vehicles |
 | POST | `/api/v1/tracking/vehicles/ingest` | Ingest GPS position |
 | GET | `/api/v1/alerts/active` | Active alerts |
-| POST | `/api/v1/reports/submit` | Submit field report |
+| POST | `/api/v1/reports/submit` | Submit field report (works offline) |
+| GET | `/api/v1/reports/recent` | Recent field reports |
 
 Full API docs: **http://localhost:8000/docs**
 
 ---
 
-## Quick Start
+## Real Data Sources
 
-### Prerequisites
-- Python 3.12+ (with `uv` package manager)
-- Node.js 18+
-
-### Setup
-
-```bash
-# Clone
-git clone <repo-url>
-cd SIH26002
-
-# Backend
-cd backend
-uv venv .venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
-
-# Seed road network from OSM (one-time, ~2 min)
-python3 ../ml/seed_roads.py
-
-# Seed demo data
-python3 -c "import sys; sys.path.insert(0,'../ml'); from seed_demo_data import seed_all; seed_all()"
-
-# Frontend
-cd ../frontend
-npm install
-```
-
-### Run
-
-```bash
-# Terminal 1 — Backend
-cd backend && source .venv/bin/activate
-uvicorn main:app --reload --port 8000
-
-# Terminal 2 — Frontend
-cd frontend && npx vite --port 3000
-```
-
----
-
-## Project Structure
-
-```
-SIH26002/
-├── backend/                  # FastAPI + SQLite
-│   ├── main.py               # Entrypoint + WebSocket + init_db
-│   ├── config.py             # Settings
-│   ├── services/
-│   │   ├── weather.py        # Open-Meteo integration
-│   │   └── disruption_predictor.py  # ML model + heuristic
-│   ├── api/                  # Route handlers
-│   └── models/               # SQLAlchemy schema
-├── frontend/                 # React + Vite + MapLibre
-│   └── src/
-│       ├── pages/            # Dashboard, Tracking, Disruptions, Reports
-│       └── components/       # Map, Stats, Alerts, Sidebar
-├── ml/                       # ML pipeline
-│   ├── seed_roads.py         # OSM PBF → SQLite
-│   ├── seed_demo_data.py     # Demo vehicles/disruptions/alerts
-│   ├── train_disruption.py   # XGBoost + RF training
-│   └── generate_training_data.py  # Synthetic data generator
-├── data/osm/                 # NER OSM extract (105 MB)
-├── sql/                      # PostGIS schema (Docker)
-└── routing/                  # Valhalla config
-```
+| Source | Data | Access |
+|---|---|---|
+| **OpenStreetMap** | 285K road segments (NER extract from Geofabrik) | Free, local PBF file |
+| **Open-Meteo** | Live weather (temp, rain, wind, humidity) | Free API, no key required |
+| **NHAI API Setu** | Highway work zones, accident-prone areas | Government API |
+| **Census 2011** | District populations, road density | Public data |
 
 ---
 
 ## ML Model
 
 **Disruption Prediction** — predicts landslide/flood risk from:
-- Rainfall (1h, 24h, 7d accumulative)
-- Terrain (slope, elevation, distance to river)
-- Soil moisture, historical landslides
-- Road surface quality
+- Rainfall (1h, 24h accumulative)
+- Terrain (slope, elevation)
+- Weather conditions
 
 **Performance:** 94% accuracy, XGBoost + Random Forest ensemble
 
@@ -189,6 +168,68 @@ cd ml
 python3 generate_training_data.py
 python3 train_disruption.py --data data/ner_disruption_training.csv --output models/disruption_model.pkl
 ```
+
+---
+
+## Database
+
+| Table | Rows | Purpose |
+|---|---|---|
+| `road_segments` | 285,854 | NER road network from OSM + 200 highway segments |
+| `vehicle_positions` | 25 | 25 vehicles on real NER routes |
+| `disruption_events` | 15 | 15 real disruption events |
+| `field_reports` | — | Geo-tagged field reports (offline-capable) |
+| `alerts` | 10 | 10 real alerts |
+| `districts` | 8 | NER states with Census 2011 population + road density |
+| `siliguri_corridor` | 1 | Siliguri bottleneck status |
+
+---
+
+## Project Structure
+
+```
+SIH26002/
+├── backend/                    # FastAPI + SQLite
+│   ├── main.py                 # Entrypoint + WebSocket + init_db
+│   ├── config.py               # Settings
+│   ├── api/                    # Route handlers (routing, tracking, alerts, reports)
+│   ├── models/                 # SQLAlchemy schema (7 tables)
+│   └── services/
+│       ├── weather.py          # Open-Meteo API integration
+│       └── disruption_predictor.py  # ML model loader + heuristic fallback
+├── frontend/                   # React + Vite + MapLibre
+│   ├── public/                 # PWA manifest, service worker, favicon
+│   └── src/
+│       ├── api.ts              # Typed API client
+│       ├── offline.ts          # IndexedDB offline sync
+│       ├── i18n.ts             # Translations (EN/BN/HI/AS)
+│       ├── pages/              # Dashboard, Tracking, Disruptions, Districts, Analytics, Emergency, Reports
+│       └── components/         # Map, Stats, Alerts, Sidebar, Weather, Siliguri
+├── ml/                         # ML pipeline
+│   ├── seed_roads.py           # OSM PBF → SQLite (~285K segments)
+│   ├── seed_real_data.py       # Real NER census, highways, vehicles, disruptions
+│   ├── train_disruption.py     # XGBoost + RF training
+│   ├── generate_training_data.py  # Synthetic NER disruption data
+│   └── models/                 # Saved .pkl models
+├── data/osm/                   # NER OSM extract (105 MB)
+├── sql/                        # PostGIS schema (Docker deployment)
+├── routing/                    # Valhalla config
+├── docker/                     # Dockerfiles
+├── Makefile                    # make dev / make install / make seed / make clean
+└── README.md
+```
+
+---
+
+## Make Commands
+
+| Command | Description |
+|---|---|
+| `make dev` | Start backend (:8000) + frontend (:3000) |
+| `make install` | Install all dependencies |
+| `make seed` | Re-seed roads + real NER data |
+| `make clean` | Remove DB, venv, node_modules |
+| `make test` | Check backend + frontend compile |
 
 ---
 
