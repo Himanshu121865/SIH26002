@@ -1,0 +1,53 @@
+{
+  "math": {
+    "shortlist": 5000,
+    "default": {
+      "speed": [
+        "motorway", "motorway_link",
+        "trunk", "trunk_link",
+        "primary", "primary_link",
+        "secondary", "secondary_link",
+        "tertiary", "tertiary_link",
+        "unclassified", "residential"
+      ],
+      "road": [
+        "motorway", "motorway_link",
+        "trunk", "trunk_link",
+        "primary", "primary_link",
+        "secondary", "secondary_link",
+        "tertiary", "tertiary_link",
+        "unclassified", "residential",
+        "service"
+      ],
+      "track": ["track"],
+      "ferry": ["ferry"]
+    },
+    "hierarchy": {
+      "motorway": 1,
+      "motorway_link": 1,
+      "trunk": 2,
+      "trunk_link": 2,
+      "primary": 3,
+      "primary_link": 3,
+      "secondary": 4,
+      "secondary_link": 4,
+      "tertiary": 5,
+      "tertiary_link": 5
+    }
+  },
+  "costing": {
+    "auto": {
+      "top_speed": 120,
+      "use_highways": 1.0,
+      "use_tolls": 0.0,
+      "use_living_roads": 0.0,
+      "use_tracks": 0.3
+    }
+  },
+  "tile_dir": "/data/valhalla/tiles",
+  "logging": {
+    "type": "std_out",
+    "color": true,
+    "level": "info"
+  }
+}

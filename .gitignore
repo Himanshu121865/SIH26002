@@ -1,0 +1,28 @@
+# Data files (OSM extracts, weather data, trained models)
+# Do not commit large files to git
+*.osm.pbf
+*.osm.xml
+*.pkl
+*.joblib
+*.nc
+*.csv
+*.db
+
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# Build artifacts
+dist/
+build/
+.vite/
+*.log
+
+# IDE
+.vscode/
+.idea/
